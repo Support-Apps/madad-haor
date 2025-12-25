@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מדד האור - Light Index</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --gold: #D4AF37;
+            --gold-light: #F5E6B3;
+            --mint: #98D4BB;
+            --mint-dark: #6BB89C;
+            --mint-light: #E8F5F0;
+            --baby-pink: #FFE4E8;
+            --pink-dark: #FFB6C1;
+            --cream: #FFF8E7;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--baby-pink) 0%, var(--cream) 50%, var(--mint-light) 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .besd {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 0.85rem;
+            color: var(--gold);
+            font-weight: 600;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 20px 20px;
+            background: var(--cream);
+            border-bottom: 5px solid var(--gold);
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: var(--gold);
+            margin-bottom: 10px;
+            font-weight: 900;
+        }
+        
+        .subtitle { color: #666; font-size: 1rem; }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Scanner */
+        .scanner-section {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(212, 175, 55, 0.2);
+            text-align: center;
+        }
+        
+        .scanner-title {
+            color: var(--gold);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        
+        .scanner-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+        }
+        
+        .scanner-ring {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border: 8px solid var(--mint-light);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .scanner-ring.scanning {
+            border-color: var(--gold);
+            animation: pulse-ring 1s infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px 10px rgba(212, 175, 55, 0.2); }
+        }
+        
+        .scanner-button {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, var(--baby-pink), var(--pink-dark));
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 182, 193, 0.5);
+        }
+        
+        .scanner-button:hover { transform: translate(-50%, -50%) scale(1.05); }
+        
+        .scanner-button.scanning {
+            background: linear-gradient(145deg, var(--gold-light), var(--gold));
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.6);
+        }
+        
+        .scanner-icon { font-size: 3rem; margin-bottom: 5px; }
+        .scanner-text { font-size: 0.85rem; color: #666; font-weight: 600; }
+        .scanner-instruction { color: #888; font-size: 0.9rem; margin-top: 10px; }
+        
+        /* Result */
+        .result-section {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(152, 212, 187, 0.2);
+            display: none;
+        }
+        
+        .result-section.visible { display: block; animation: fadeIn 0.5s ease; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-header { text-align: center; margin-bottom: 20px; }
+        .result-value { font-size: 4rem; font-weight: 900; color: var(--gold); line-height: 1; }
+        .result-unit { color: var(--mint-dark); font-size: 1.1rem; margin-top: 5px; }
+        
+        .result-status {
+            background: linear-gradient(135deg, var(--gold-light), var(--cream));
+            padding: 15px 25px;
+            border-radius: 20px;
+            text-align: center;
+            margin-top: 15px;
+            color: #5a4a2a;
+            font-weight: 600;
+            border-right: 4px solid var(--gold);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: var(--mint-light);
+            border-radius: 15px;
+            padding: 15px 10px;
+            text-align: center;
+        }
+        
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--mint-dark); }
+        .stat-label { font-size: 0.75rem; color: #666; margin-top: 3px; }
+        
+        .progress-container { margin-top: 20px; }
+        .progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; color: #666; }
+        .progress-bar { height: 12px; background: var(--mint-light); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--mint), var(--gold)); border-radius: 10px; transition: width 1s ease; width: 0%; }
+        
+        /* Quick Mitzvot */
+        .quick-section {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(255, 182, 193, 0.2);
+        }
+        
+        .quick-title { color: var(--pink-dark); font-size: 1.1rem; margin-bottom: 15px; text-align: center; }
+        
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .quick-btn {
+            background: var(--baby-pink);
+            border: 2px solid transparent;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .quick-btn:hover { background: var(--pink-dark); color: white; }
+        .quick-btn.selected { background: var(--gold); border-color: var(--gold); color: white; }
+        
+        /* Input */
+        .input-section {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.15);
+        }
+        
+        .input-title { color: var(--gold); font-size: 1.1rem; margin-bottom: 15px; }
+        
+        .mitzvah-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 2px solid var(--mint-light);
+            border-radius: 15px;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        
+        .mitzvah-textarea:focus { outline: none; border-color: var(--gold); }
+        
+        .save-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--mint), var(--mint-dark));
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            font-family: inherit;
+        }
+        
+        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(152, 212, 187, 0.4); }
+        
+        /* Saved List */
+        .saved-section {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(152, 212, 187, 0.15);
+        }
+        
+        .saved-title { color: var(--mint-dark); font-size: 1.1rem; margin-bottom: 15px; }
+        .saved-list { max-height: 300px; overflow-y: auto; }
+        
+        .saved-item {
+            background: var(--mint-light);
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .saved-item-text { flex: 1; }
+        .saved-item-points { color: var(--gold); font-weight: 600; margin-left: 10px; }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0 8px;
+            line-height: 1;
+        }
+        
+        .delete-btn:hover { color: #EF5350; }
+        
+        /* Reset */
+        .reset-btn {
+            width: 100%;
+            background: #EF5350;
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .reset-btn:hover { background: #D32F2F; }
+        
+        footer { text-align: center; padding: 20px; color: #888; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="besd">בס"ד</div>
+        <h1>💡 מדד האור 💡</h1>
+        <p class="subtitle">מדוד את עוצמת האור הרוחני שלך</p>
+    </header>
+    
+    <div class="container">
+        <!-- Scanner -->
+        <div class="scanner-section">
+            <div class="scanner-title">📷 סריקת אור רוחני</div>
+            <div class="scanner-container">
+                <div class="scanner-ring" id="scannerRing"></div>
+                <button class="scanner-button" id="scannerBtn">
+                    <span class="scanner-icon" id="scannerIcon">👆</span>
+                    <span class="scanner-text" id="scannerText">לחץ והחזק</span>
+                </button>
+            </div>
+            <p class="scanner-instruction">הנח את האצבע על הכפתור למדידת האור שלך</p>
+        </div>
+        
+        <!-- Result -->
+        <div class="result-section" id="resultSection">
+            <div class="result-header">
+                <div class="result-value" id="resultValue">0</div>
+                <div class="result-unit">יחידות אור ✨</div>
+            </div>
+            <div class="result-status" id="resultStatus">🌱 התחל לקיים מצוות</div>
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>התקדמות יומית</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="mitzvotCount">0</div>
+                    <div class="stat-label">מצוות היום</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="bodyParts">0</div>
+                    <div class="stat-label">איברים מוארים</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">ימים ברצף</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Mitzvot -->
+        <div class="quick-section">
+            <div class="quick-title">⚡ מצוות מהירות - לחץ להוספה</div>
+            <div class="quick-grid" id="quickGrid">
+                <button class="quick-btn" data-name="מודה אני" data-points="5">🌅 מודה אני</button>
+                <button class="quick-btn" data-name="נטילת ידיים" data-points="5">🤲 נטילת ידיים</button>
+                <button class="quick-btn" data-name="ברכות" data-points="10">🍞 ברכות</button>
+                <button class="quick-btn" data-name="קריאת שמע" data-points="15">📖 קריאת שמע</button>
+                <button class="quick-btn" data-name="תפילה" data-points="20">🙏 תפילה</button>
+                <button class="quick-btn" data-name="צדקה" data-points="15">💰 צדקה</button>
+                <button class="quick-btn" data-name="גמילות חסד" data-points="15">❤️ גמילות חסד</button>
+                <button class="quick-btn" data-name="לימוד תורה" data-points="25">📚 לימוד תורה</button>
+                <button class="quick-btn" data-name="כיבוד הורים" data-points="20">👨‍👩‍👧 כיבוד הורים</button>
+                <button class="quick-btn" data-name="שמירת שבת" data-points="30">🕯️ שמירת שבת</button>
+            </div>
+        </div>
+        
+        <!-- Input -->
+        <div class="input-section">
+            <div class="input-title">✍️ כתוב מצוות שקיימת היום</div>
+            <textarea class="mitzvah-textarea" id="mitzvahInput" placeholder="לדוגמה: עזרתי לשכן, ביקרתי חולה..."></textarea>
+            <button class="save-btn" id="saveBtn">💾 שמור והוסף אור</button>
+        </div>
+        
+        <!-- Saved List -->
+        <div class="saved-section" id="savedSection">
+            <div class="saved-title">📋 המצוות שקיימתי היום</div>
+            <div class="saved-list" id="savedList"></div>
+        </div>
+        
+        <!-- Reset -->
+        <button type="button" class="reset-btn" onclick="doReset()">🔄 איפוס ליום חדש</button>
+    </div>
+    
+    <footer>
+        <p>💫 "כל מצוה ומצוה שאדם עושה, נעשית לבוש לנשמה" - זוהר הקדוש 💫</p>
+    </footer>
+    
+    <script>
+        // === RESET FUNCTION FIRST ===
+        function doReset() {
+            alert('מאפס...');
+            
+            // Reset display directly
+            document.getElementById('resultValue').textContent = '0';
+            document.getElementById('mitzvotCount').textContent = '0';
+            document.getElementById('bodyParts').textContent = '0';
+            document.getElementById('progressPercent').textContent = '0%';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('resultStatus').textContent = '🌱 התחל לקיים מצוות';
+            document.getElementById('resultSection').classList.remove('visible');
+            document.getElementById('savedList').innerHTML = '';
+            document.getElementById('savedSection').style.display = 'none';
+            
+            // Unselect quick buttons
+            var btns = document.querySelectorAll('.quick-btn');
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].classList.remove('selected');
+            }
+            
+            // Clear storage
+            localStorage.removeItem('lightIndexData2');
+            
+            // Reset variables
+            totalLight = 0;
+            allMitzvot = [];
+            nextId = 1;
+            
+            alert('האיפוס הושלם!');
+        }
+        
+        // === DATA ===
+        var totalLight = 0;
+        var allMitzvot = []; // Array of {id, name, points, type}
+        var nextId = 1;
+        
+        // === ELEMENTS ===
+        var scannerBtn = document.getElementById('scannerBtn');
+        var scannerRing = document.getElementById('scannerRing');
+        var scannerIcon = document.getElementById('scannerIcon');
+        var scannerText = document.getElementById('scannerText');
+        var resultSection = document.getElementById('resultSection');
+        var resultValue = document.getElementById('resultValue');
+        var resultStatus = document.getElementById('resultStatus');
+        var progressPercent = document.getElementById('progressPercent');
+        var progressFill = document.getElementById('progressFill');
+        var mitzvotCount = document.getElementById('mitzvotCount');
+        var bodyParts = document.getElementById('bodyParts');
+        var savedSection = document.getElementById('savedSection');
+        var savedList = document.getElementById('savedList');
+        var mitzvahInput = document.getElementById('mitzvahInput');
+        var saveBtn = document.getElementById('saveBtn');
+        var quickGrid = document.getElementById('quickGrid');
+        
+        // === UPDATE DISPLAY ===
+        function updateDisplay() {
+            resultValue.textContent = totalLight;
+            mitzvotCount.textContent = allMitzvot.length;
+            bodyParts.textContent = Math.min(248, allMitzvot.length * 3);
+            
+            // Status
+            if (totalLight === 0) {
+                resultStatus.textContent = '🌱 התחל לקיים מצוות';
+            } else if (totalLight < 30) {
+                resultStatus.textContent = '🌟 התחלה יפה!';
+            } else if (totalLight < 70) {
+                resultStatus.textContent = '✨ האור הולך וגדל!';
+            } else if (totalLight < 120) {
+                resultStatus.textContent = '💫 מדהים!';
+            } else if (totalLight < 200) {
+                resultStatus.textContent = '🔥 האור חזק מאוד!';
+            } else {
+                resultStatus.textContent = '👑 צדיק גמור!';
+            }
+            
+            // Progress
+            var percent = Math.min(100, Math.round((totalLight / 150) * 100));
+            progressPercent.textContent = percent + '%';
+            progressFill.style.width = percent + '%';
+            
+            // Show result if has data
+            if (totalLight > 0) {
+                resultSection.classList.add('visible');
+            }
+            
+            // Render list
+            renderList();
+            
+            // Save
+            saveToStorage();
+        }
+        
+        // === RENDER LIST ===
+        function renderList() {
+            if (allMitzvot.length === 0) {
+                savedSection.style.display = 'none';
+                return;
+            }
+            
+            savedSection.style.display = 'block';
+            var html = '';
+            for (var i = 0; i < allMitzvot.length; i++) {
+                var m = allMitzvot[i];
+                html += '<div class="saved-item" data-id="' + m.id + '">';
+                html += '<span class="saved-item-text">' + m.name + '</span>';
+                html += '<span class="saved-item-points">+' + m.points + '</span>';
+                html += '<button class="delete-btn" data-id="' + m.id + '">✕</button>';
+                html += '</div>';
+            }
+            savedList.innerHTML = html;
+            
+            // Add delete handlers
+            var deleteButtons = savedList.querySelectorAll('.delete-btn');
+            for (var j = 0; j < deleteButtons.length; j++) {
+                deleteButtons[j].onclick = function() {
+                    var id = parseInt(this.getAttribute('data-id'));
+                    deleteMitzvah(id);
+                };
+            }
+        }
+        
+        // === DELETE MITZVAH ===
+        function deleteMitzvah(id) {
+            for (var i = 0; i < allMitzvot.length; i++) {
+                if (allMitzvot[i].id === id) {
+                    totalLight -= allMitzvot[i].points;
+                    
+                    // If it's a quick mitzvah, unselect the button
+                    var name = allMitzvot[i].name;
+                    var btns = quickGrid.querySelectorAll('.quick-btn');
+                    for (var j = 0; j < btns.length; j++) {
+                        if (btns[j].getAttribute('data-name') === name) {
+                            btns[j].classList.remove('selected');
+                        }
+                    }
+                    
+                    allMitzvot.splice(i, 1);
+                    break;
+                }
+            }
+            updateDisplay();
+        }
+        
+        // === ADD MITZVAH ===
+        function addMitzvah(name, points) {
+            allMitzvot.push({
+                id: nextId++,
+                name: name,
+                points: points
+            });
+            totalLight += points;
+            updateDisplay();
+        }
+        
+        // === QUICK BUTTONS ===
+        var quickBtns = quickGrid.querySelectorAll('.quick-btn');
+        for (var i = 0; i < quickBtns.length; i++) {
+            quickBtns[i].onclick = function() {
+                var name = this.getAttribute('data-name');
+                var points = parseInt(this.getAttribute('data-points'));
+                
+                if (this.classList.contains('selected')) {
+                    // Find and remove
+                    for (var j = 0; j < allMitzvot.length; j++) {
+                        if (allMitzvot[j].name === name) {
+                            totalLight -= allMitzvot[j].points;
+                            allMitzvot.splice(j, 1);
+                            break;
+                        }
+                    }
+                    this.classList.remove('selected');
+                } else {
+                    addMitzvah(name, points);
+                    this.classList.add('selected');
+                }
+                updateDisplay();
+            };
+        }
+        
+        // === SAVE BUTTON ===
+        saveBtn.onclick = function() {
+            var text = mitzvahInput.value.trim();
+            if (!text) {
+                alert('אנא כתוב את המצווה');
+                return;
+            }
+            var points = Math.min(30, Math.max(10, Math.floor(text.length / 5) + 10));
+            addMitzvah(text, points);
+            mitzvahInput.value = '';
+        };
+        
+        // === SCANNER ===
+        var scanning = false;
+        var scanTimer = null;
+        
+        scannerBtn.onmousedown = function(e) {
+            e.preventDefault();
+            startScan();
+        };
+        scannerBtn.onmouseup = stopScan;
+        scannerBtn.onmouseleave = stopScan;
+        scannerBtn.ontouchstart = function(e) {
+            e.preventDefault();
+            startScan();
+        };
+        scannerBtn.ontouchend = stopScan;
+        
+        function startScan() {
+            if (scanning) return;
+            scanning = true;
+            scannerBtn.classList.add('scanning');
+            scannerRing.classList.add('scanning');
+            scannerIcon.textContent = '✨';
+            scannerText.textContent = 'סורק...';
+            
+            scanTimer = setTimeout(function() {
+                completeScan();
+            }, 2000);
+        }
+        
+        function stopScan() {
+            if (!scanning) return;
+            if (scanTimer) {
+                clearTimeout(scanTimer);
+                scanTimer = null;
+            }
+            scanning = false;
+            scannerBtn.classList.remove('scanning');
+            scannerRing.classList.remove('scanning');
+            scannerIcon.textContent = '👆';
+            scannerText.textContent = 'לחץ והחזק';
+        }
+        
+        function completeScan() {
+            scanning = false;
+            scannerBtn.classList.remove('scanning');
+            scannerRing.classList.remove('scanning');
+            scannerIcon.textContent = '💡';
+            scannerText.textContent = 'נמדד!';
+            resultSection.classList.add('visible');
+            
+            setTimeout(function() {
+                scannerIcon.textContent = '👆';
+                scannerText.textContent = 'לחץ והחזק';
+            }, 2000);
+        }
+        
+        // === STORAGE ===
+        function saveToStorage() {
+            var data = {
+                date: new Date().toDateString(),
+                totalLight: totalLight,
+                allMitzvot: allMitzvot,
+                nextId: nextId
+            };
+            localStorage.setItem('lightIndexData2', JSON.stringify(data));
+        }
+        
+        function loadFromStorage() {
+            var saved = localStorage.getItem('lightIndexData2');
+            if (saved) {
+                var data = JSON.parse(saved);
+                if (data.date === new Date().toDateString()) {
+                    totalLight = data.totalLight || 0;
+                    allMitzvot = data.allMitzvot || [];
+                    nextId = data.nextId || 1;
+                    
+                    // Mark quick buttons as selected
+                    for (var i = 0; i < allMitzvot.length; i++) {
+                        var name = allMitzvot[i].name;
+                        var btns = quickGrid.querySelectorAll('.quick-btn');
+                        for (var j = 0; j < btns.length; j++) {
+                            if (btns[j].getAttribute('data-name') === name) {
+                                btns[j].classList.add('selected');
+                            }
+                        }
+                    }
+                    
+                    updateDisplay();
+                }
+            }
+        }
+        
+        // === INIT ===
+        loadFromStorage();
+    </script>
+</body>
+</html>
