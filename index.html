@@ -159,6 +159,122 @@
             border-right: 4px solid var(--gold);
         }
         
+        /* Smartwatch Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        
+        .metric-card.heart::before { background: linear-gradient(90deg, #FF6B6B, #EE5A5A); }
+        .metric-card.steps::before { background: linear-gradient(90deg, var(--mint), var(--mint-dark)); }
+        .metric-card.pace::before { background: linear-gradient(90deg, var(--gold), #F4C430); }
+        .metric-card.energy::before { background: linear-gradient(90deg, #9B59B6, #8E44AD); }
+        
+        .metric-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        
+        .metric-card.heart .metric-value { color: #EE5A5A; }
+        .metric-card.steps .metric-value { color: var(--mint-dark); }
+        .metric-card.pace .metric-value { color: var(--gold); }
+        .metric-card.energy .metric-value { color: #8E44AD; }
+        
+        .metric-unit {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        
+        /* Heart Animation */
+        .heart-icon {
+            display: inline-block;
+            animation: heartbeat 1s infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        /* Pulse Animation for Values */
+        .metric-value.pulse {
+            animation: valuePulse 0.5s ease;
+        }
+        
+        @keyframes valuePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Walking Animation */
+        .steps-icon {
+            display: inline-block;
+            animation: walking 0.5s infinite alternate;
+        }
+        
+        @keyframes walking {
+            0% { transform: translateY(0) rotate(-5deg); }
+            100% { transform: translateY(-3px) rotate(5deg); }
+        }
+        
+        /* Glow Animation */
+        .pace-icon {
+            display: inline-block;
+            animation: glow 1.5s infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.5)); }
+            50% { filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.8)); }
+        }
+        
+        /* Energy Animation */
+        .energy-icon {
+            display: inline-block;
+            animation: spark 0.8s infinite;
+        }
+        
+        @keyframes spark {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -338,6 +454,38 @@
                 <div class="result-unit">יחידות אור ✨</div>
             </div>
             <div class="result-status" id="resultStatus">🌱 התחל לקיים מצוות</div>
+            
+            <!-- Smartwatch Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card heart">
+                    <div class="metric-icon"><span class="heart-icon">❤️</span></div>
+                    <div class="metric-value" id="heartRate">72</div>
+                    <div class="metric-unit">פעימות/דקה</div>
+                    <div class="metric-label">קצב לב רוחני</div>
+                </div>
+                
+                <div class="metric-card steps">
+                    <div class="metric-icon"><span class="steps-icon">👟</span></div>
+                    <div class="metric-value" id="spiritSteps">500</div>
+                    <div class="metric-unit">צעדים</div>
+                    <div class="metric-label">צעדים רוחניים</div>
+                </div>
+                
+                <div class="metric-card pace">
+                    <div class="metric-icon"><span class="pace-icon">💡</span></div>
+                    <div class="metric-value" id="lightPace">2.5</div>
+                    <div class="metric-unit">אור/שעה</div>
+                    <div class="metric-label">קצב הולכת האור</div>
+                </div>
+                
+                <div class="metric-card energy">
+                    <div class="metric-icon"><span class="energy-icon">⚡</span></div>
+                    <div class="metric-value" id="spiritEnergy">25%</div>
+                    <div class="metric-unit">מטען</div>
+                    <div class="metric-label">אנרגיה רוחנית</div>
+                </div>
+            </div>
+            
             <div class="progress-container">
                 <div class="progress-label">
                     <span>התקדמות יומית</span>
@@ -417,6 +565,12 @@
             document.getElementById('savedList').innerHTML = '';
             document.getElementById('savedSection').style.display = 'none';
             
+            // Reset smartwatch metrics to base values
+            document.getElementById('heartRate').textContent = '72';
+            document.getElementById('spiritSteps').textContent = '500';
+            document.getElementById('lightPace').textContent = '2.5';
+            document.getElementById('spiritEnergy').textContent = '25%';
+            
             // Unselect quick buttons
             var btns = document.querySelectorAll('.quick-btn');
             for (var i = 0; i < btns.length; i++) {
@@ -457,11 +611,43 @@
         var saveBtn = document.getElementById('saveBtn');
         var quickGrid = document.getElementById('quickGrid');
         
+        // Smartwatch metrics
+        var heartRate = document.getElementById('heartRate');
+        var spiritSteps = document.getElementById('spiritSteps');
+        var lightPace = document.getElementById('lightPace');
+        var spiritEnergy = document.getElementById('spiritEnergy');
+        
         // === UPDATE DISPLAY ===
         function updateDisplay() {
             resultValue.textContent = totalLight;
             mitzvotCount.textContent = allMitzvot.length;
             bodyParts.textContent = Math.min(248, allMitzvot.length * 3);
+            
+            // === SMARTWATCH METRICS ===
+            // Spiritual Heart Rate - starts at 72 (healthy resting heart rate)
+            var baseHeartRate = 72;
+            var heartBoost = Math.min(60, allMitzvot.length * 5 + Math.floor(totalLight / 8));
+            var currentHeartRate = baseHeartRate + heartBoost;
+            heartRate.textContent = currentHeartRate;
+            
+            // Spiritual Steps - base of 500 + mitzvot contribution
+            var baseSteps = 500;
+            var mitzvotSteps = allMitzvot.length * 800 + totalLight * 15;
+            var totalSteps = baseSteps + mitzvotSteps;
+            spiritSteps.textContent = totalSteps.toLocaleString();
+            
+            // Light Pace - base of 2.5 + contribution
+            var basePace = 2.5;
+            var hours = Math.max(1, new Date().getHours() - 6);
+            var additionalPace = totalLight > 0 ? (totalLight / hours) : 0;
+            var pace = basePace + additionalPace;
+            lightPace.textContent = pace.toFixed(1);
+            
+            // Spirit Energy - starts at 25% + mitzvot contribution
+            var baseEnergy = 25;
+            var mitzvotEnergy = Math.round((totalLight / 150) * 75); // up to 75% more
+            var energyPercent = Math.min(100, baseEnergy + mitzvotEnergy);
+            spiritEnergy.textContent = energyPercent + '%';
             
             // Status
             if (totalLight === 0) {
@@ -643,6 +829,20 @@
             scannerIcon.textContent = '💡';
             scannerText.textContent = 'נמדד!';
             resultSection.classList.add('visible');
+            
+            // Animate metrics with pulse effect
+            var metrics = document.querySelectorAll('.metric-value');
+            for (var i = 0; i < metrics.length; i++) {
+                metrics[i].classList.add('pulse');
+            }
+            setTimeout(function() {
+                for (var i = 0; i < metrics.length; i++) {
+                    metrics[i].classList.remove('pulse');
+                }
+            }, 500);
+            
+            // Update display
+            updateDisplay();
             
             setTimeout(function() {
                 scannerIcon.textContent = '👆';
